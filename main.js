@@ -1,12 +1,13 @@
 // import modules
-require('prototype.spawn')();
+require('prototypes')();
+
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleRepairer = require('role.repairer');
 
 var minimumNumberOfHarvesters = 5;
 var minimumNumberOfUpgraders = 1;
-var minimumNumberOfRepairers = 1;
+var minimumNumberOfRepairers = 2;
 
 module.exports.loop = function () {
     let healer = false;
