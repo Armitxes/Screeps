@@ -5,22 +5,26 @@ var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleRepairer = require('role.repairer');
 
-var minimumNumberOfHarvesters = 5;
+var minimumNumberOfHarvesters = 4;
 var minimumNumberOfUpgraders = 1;
-var minimumNumberOfRepairers = 2;
+var minimumNumberOfRepairers = 1;
 
 module.exports.loop = function () {
     let healer = false;
     
-    var towers = Game.rooms.E49S36.find(FIND_STRUCTURES, {
-       filter: (s) => s.structureType == STRUCTURE_TOWER
-    });
+    var towers = Game.rooms.E49S36.find(FIND_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
     for (let tower of towers) {
         let target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if (target != undefined) {
             tower.attack(target);
-        } else if (tower.energy > 500) {
+        } else if (tower.energy > 800) {
             healer = tower;
+            let structure = tower.pos.findClosestByPath(FIND_STRUCTURES, {
+                filter: (s) => (s.hits < s.hitsMax && [STRUCTURE_WALL,STRUCTURE_RAMPART].indexOf(s.structureType) == -1)
+                || (s.structureType == STRUCTURE_RAMPART && s.hits < 3000001)
+            });
+
+            if (structure != undefined) {tower.repair(structure)}
         }
         
     }
@@ -34,7 +38,7 @@ module.exports.loop = function () {
             delete Memory.creeps[name];
         } else {
             creep.memory.isDying = creep.ticksToLive < 50;
-            if (!creep.memory.isDying && creep.hits < 1000 && healer.energy > 500) { healer.heal(creep); }
+            if (!creep.memory.isDying && creep.hits < 1000 && healer.energy > 800) { healer.heal(creep); }
 
             // if creep is bringing energy to the spawn or an extension but has no energy left
             if (creep.carry.energy == 0 && creep.memory.working && !creep.memory.isDying) {
