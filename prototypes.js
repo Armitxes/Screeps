@@ -31,15 +31,24 @@ module.exports = function() {
     Creep.prototype.storeEnergy =
         function () {
             let structure = this.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-                filter: (s) => (s.structureType == STRUCTURE_TOWER
+                filter: (s) => ((s.structureType == STRUCTURE_TOWER)
                              || s.structureType == STRUCTURE_SPAWN
                              || s.structureType == STRUCTURE_EXTENSION)
                              && s.energy < s.energyCapacity
+                             && (
+                                 s.assignedCreep == this
+                                 || s.assignedCreep == undefined
+                                 || [STRUCTURE_SPAWN,STRUCTURE_CONTROLLER].indexOf(s.structureType) > -1
+                            )
             });
 
             if (structure != undefined) {
-                if (this.transfer(structure, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    this.moveTo(structure);
+                // Max 1 Creeper per structure. Except if Spawn or Controller
+                structure.assignedCreep = this;
+                _doActionResult = this.transfer(structure, RESOURCE_ENERGY);
+                if (_doActionResult == ERR_NOT_IN_RANGE) { this.moveTo(structure); }
+                else if ([OK,ERR_NOT_OWNER,ERR_BUSY,ERR_INVALID_TARGET,ERR_FULL].indexOf(_doActionResult) > -1) {
+                    structure.assignedCreep = undefined;
                 }
                 return true
             }
@@ -70,7 +79,7 @@ module.exports = function() {
         function () {
             let structure = this.pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: (s) => (s.hits < s.hitsMax && [STRUCTURE_WALL,STRUCTURE_RAMPART].indexOf(s.structureType) == -1)
-                || (s.structureType == STRUCTURE_WALL && s.hits < 400001)
+                || (s.structureType == STRUCTURE_WALL && s.hits < 500001)
                 || (s.structureType == STRUCTURE_RAMPART && s.hits < 3000001)
             });
 

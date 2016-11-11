@@ -1,18 +1,22 @@
-// import modules
-require('prototypes')();
+// Config
+Memory.repairingObjects = [];
+var minimumNumberOfHarvesters = 5;
+var minimumNumberOfUpgraders = 1;
+var minimumNumberOfRepairers = 1;
 
+var gameRoom = Game.rooms.W2N2;
+var gameSpawn = Game.spawns.Spawn1;
+
+// Requirements
+require('prototypes')();
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleRepairer = require('role.repairer');
 
-var minimumNumberOfHarvesters = 4;
-var minimumNumberOfUpgraders = 1;
-var minimumNumberOfRepairers = 1;
-
 module.exports.loop = function () {
     let healer = false;
     
-    var towers = Game.rooms.E49S36.find(FIND_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
+    var towers = gameRoom.find(FIND_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
     for (let tower of towers) {
         let target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if (target != undefined) {
@@ -21,6 +25,7 @@ module.exports.loop = function () {
             healer = tower;
             let structure = tower.pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: (s) => (s.hits < s.hitsMax && [STRUCTURE_WALL,STRUCTURE_RAMPART].indexOf(s.structureType) == -1)
+                || (s.structureType == STRUCTURE_WALL && s.hits < 500001)
                 || (s.structureType == STRUCTURE_RAMPART && s.hits < 3000001)
             });
 
@@ -64,29 +69,29 @@ module.exports.loop = function () {
     var numberOfUpgraders = _.sum(Game.creeps, (c) => c.memory.role == 'upgrader');
     var numberOfRepairers = _.sum(Game.creeps, (c) => c.memory.role == 'repairer');
 
-    var energy = Game.spawns.Atlantis.room.energyCapacityAvailable;
+    var energy = gameSpawn.room.energyCapacityAvailable;
     var name = undefined;
 
     // if not enough harvesters
     if (numberOfHarvesters < minimumNumberOfHarvesters) {
         // try to spawn one
-        name = Game.spawns.Atlantis.createCustomCreep(energy, 'harvester');
+        name = gameSpawn.createCustomCreep(energy, 'harvester');
 
         // if spawning failed and we have no harvesters left
         if (name == ERR_NOT_ENOUGH_ENERGY && numberOfHarvesters == 0) {
             // spawn one with what is available
-            name = Game.spawns.Atlantis.createCustomCreep(
-                Game.spawns.Atlantis.room.energyAvailable, 'harvester');
+            name = gameSpawn.createCustomCreep(
+                gameSpawn.room.energyAvailable, 'harvester');
         }
     }
     // if not enough upgraders
     else if (numberOfUpgraders < minimumNumberOfUpgraders) {
         // try to spawn one
-        name = Game.spawns.Atlantis.createCustomCreep(energy, 'upgrader');
+        name = gameSpawn.createCustomCreep(energy, 'upgrader');
     }
     // if not enough repairers
     else if (numberOfRepairers < minimumNumberOfRepairers) {
         // try to spawn one
-        name = Game.spawns.Atlantis.createCustomCreep(energy, 'repairer');
+        name = gameSpawn.createCustomCreep(energy, 'repairer');
     }
 };
