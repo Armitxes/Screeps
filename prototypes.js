@@ -23,15 +23,19 @@ module.exports = function() {
     // Creeps
     Creep.prototype.gatherEnergy =
         function () {
-            let source = this.pos.findClosestByPath(FIND_SOURCES);
-            if (this.harvest(source) == ERR_NOT_IN_RANGE)
-                this.moveTo(source);
+            let source = this.pos.findClosestByPath(FIND_SOURCES, { filter: (s) => s.energy > 0 });
+            if (source != null) {
+                _actionResult = this.harvest(source);
+
+                if (_actionResult == ERR_NOT_IN_RANGE)
+                    this.moveTo(source);
+            }
         }
 
     Creep.prototype.storeEnergy =
         function () {
             let structure = this.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-                filter: (s) => ((s.structureType == STRUCTURE_TOWER)
+                filter: (s) => ((s.structureType == STRUCTURE_TOWER && s.energy < 801)
                              || s.structureType == STRUCTURE_SPAWN
                              || s.structureType == STRUCTURE_EXTENSION)
                              && s.energy < s.energyCapacity
@@ -79,8 +83,6 @@ module.exports = function() {
         function () {
             let structure = this.pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: (s) => (s.hits < s.hitsMax && [STRUCTURE_WALL,STRUCTURE_RAMPART].indexOf(s.structureType) == -1)
-                || (s.structureType == STRUCTURE_WALL && s.hits < 500001)
-                || (s.structureType == STRUCTURE_RAMPART && s.hits < 3000001)
             });
 
             if (structure != undefined) {

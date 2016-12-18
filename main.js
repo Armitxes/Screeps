@@ -7,7 +7,6 @@ var minimumNumberOfRepairers = 1;
 var gameRoom = Game.rooms.W2N2;
 var gameSpawn = Game.spawns.Spawn1;
 
-// Requirements
 require('prototypes')();
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
@@ -18,10 +17,11 @@ module.exports.loop = function () {
     
     var towers = gameRoom.find(FIND_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
     for (let tower of towers) {
+        minimumNumberOfRepairers = 0;
         let target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if (target != undefined) {
             tower.attack(target);
-        } else if (tower.energy > 800) {
+        } else if (tower.energy > 500) {
             healer = tower;
             let structure = tower.pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: (s) => (s.hits < s.hitsMax && [STRUCTURE_WALL,STRUCTURE_RAMPART].indexOf(s.structureType) == -1)
@@ -76,7 +76,7 @@ module.exports.loop = function () {
     if (numberOfHarvesters < minimumNumberOfHarvesters) {
         // try to spawn one
         name = gameSpawn.createCustomCreep(energy, 'harvester');
-
+        
         // if spawning failed and we have no harvesters left
         if (name == ERR_NOT_ENOUGH_ENERGY && numberOfHarvesters == 0) {
             // spawn one with what is available
