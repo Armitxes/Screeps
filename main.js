@@ -5,16 +5,16 @@ var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleRepairer = require('role.repairer');
 
-var minimumNumberOfHarvesters = 4;
-var minimumNumberOfUpgraders = 1;
-var minimumNumberOfRepairers = 1;
-
+/*
+    Can save you quite some resources because of odd reasons.
+    Must be set manually, you can get the unique Object ID's by clicking on them.
+*/
 var ownedRooms = {
     'W1N3': {
         sources: [Game.getObjectById('16476a46e5be0de'), Game.getObjectById('65c26a46e5bf23d')],
         spawn: Game.getObjectById('6a63bab435b4fdb'),
         towers: [Game.getObjectById('f08959cc6771307'), Game.getObjectById('8be29c791437eae')],
-        mineral: [Game.getObjectById('ae846a46e5b4b7f')],
+        mineral: Game.getObjectById('ae846a46e5b4b7f'),
         cfg: {
             forceHarvesterCount: 4,
             forceUpgraderCount: 1,
@@ -24,18 +24,19 @@ var ownedRooms = {
 }
 
 module.exports.loop = function () {
-
-
     let healer = false;
 
     for (let key in ownedRooms) {
         roomObj = Game.rooms[key];
         roomData = ownedRooms[key];
 
+        // Remove any non existent objects
+        roomData.sources.remove(null);
+        roomData.towers.remove(null);
+
         roomData.cfg.forceRepairerCount = (roomData.towers.length > 0) ? 0 : 1;
 
         for (let tower of roomData.towers) {
-            minimumNumberOfRepairers = 0;
             let target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
             if (target != undefined) {
                 tower.attack(target);
@@ -80,8 +81,6 @@ module.exports.loop = function () {
         }
 
         // count the number of creeps alive for each role
-        // _.sum will count the number of properties in Game.creeps filtered by the
-        //  arrow function, which checks for the creep being a harvester
         var numberOfHarvesters = _.sum(roomOwnedCreeps, (c) => c.memory.role == 'harvester');
         var numberOfUpgraders = _.sum(roomOwnedCreeps, (c) => c.memory.role == 'upgrader');
         var numberOfRepairers = _.sum(roomOwnedCreeps, (c) => c.memory.role == 'repairer');
@@ -98,7 +97,7 @@ module.exports.loop = function () {
             name = roomData.spawn.createCustomCreep(energy, 'upgrader');
         }
         // if not enough repairers
-        else if (numberOfRepairers < minimumNumberOfRepairers) {
+        else if (numberOfRepairers < roomData.cfg.forceRepairerCount) {
             name = roomData.spawn.createCustomCreep(energy, 'repairer');
         }
     }
