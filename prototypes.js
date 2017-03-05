@@ -29,7 +29,7 @@ module.exports = function() {
 
                 if (_actionResult == ERR_NOT_IN_RANGE)
                     this.moveTo(source);
-            }
+            } else { this.working = true; }
         }
 
     Creep.prototype.storeEnergy =
