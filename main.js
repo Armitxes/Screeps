@@ -34,7 +34,10 @@ module.exports.loop = function () {
         roomData.sources.remove(null);
         roomData.towers.remove(null);
 
+        // You never will need more than one, this is just in case of towers
+        // getting destroyed
         roomData.cfg.forceRepairerCount = (roomData.towers.length > 0) ? 0 : 1;
+        roomData.cfg.forceUpgraderCount = (roomData.towers.length > 0) ? 0 : 1;
 
         for (let tower of roomData.towers) {
             let target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
