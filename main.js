@@ -10,11 +10,11 @@ var roleRepairer = require('role.repairer');
     Must be set manually, you can get the unique Object ID's by clicking on them.
 */
 var ownedRooms = {
-    'W1N3': {
-        sources: [Game.getObjectById('16476a46e5be0de'), Game.getObjectById('65c26a46e5bf23d')],
-        spawn: Game.getObjectById('6a63bab435b4fdb'),
-        towers: [Game.getObjectById('f08959cc6771307'), Game.getObjectById('8be29c791437eae')],
-        mineral: Game.getObjectById('ae846a46e5b4b7f'),
+    'W2N2': {
+        sources: [Game.getObjectById('399f0774a5bab03'), Game.getObjectById('067b0774a5b1a72')],
+        spawn: Game.getObjectById('69bc2f3b646c9e1'),
+        towers: [],
+        mineral: Game.getObjectById('84816164dbb1281'),
         cfg: {
             forceHarvesterCount: 4,
             forceUpgraderCount: 1,
@@ -58,28 +58,29 @@ module.exports.loop = function () {
         roomOwnedCreeps = roomObj.find(FIND_MY_CREEPS);
         for (let index in roomOwnedCreeps) {
             var creep = roomOwnedCreeps[index];
-
-            // and checking if the creep is still alive
-            if (creep == undefined) {
-                delete Memory.creeps[name];
-            } else {
-                creep.memory.isDying = creep.ticksToLive < 50;
-                if (!creep.memory.isDying && creep.hits < 1000 && healer.energy > 800) { healer.heal(creep); }
-
-                // if creep is bringing energy to the spawn or an extension but has no energy left
-                if (creep.carry.energy == 0 && creep.memory.working && !creep.memory.isDying) {
-                    creep.memory.working = false;
-                } else if ((creep.carry.energy == creep.carryCapacity && !creep.memory.working) || creep.memory.isDying) {
-                    creep.memory.working = true;
+            if (typeof(creep) == 'object') {
+                // and checking if the creep is still alive
+                if (creep == undefined) {
+                    delete Memory.creeps[name];
+                } else {
+                    creep.memory.isDying = creep.ticksToLive < 50;
+                    if (!creep.memory.isDying && creep.hits < 1000 && healer.energy > 800) { healer.heal(creep); }
+    
+                    // if creep is bringing energy to the spawn or an extension but has no energy left
+                    if (creep.carry.energy == 0 && creep.memory.working && !creep.memory.isDying) {
+                        creep.memory.working = false;
+                    } else if ((creep.carry.energy == creep.carryCapacity && !creep.memory.working) || creep.memory.isDying) {
+                        creep.memory.working = true;
+                    }
+    
+                    switch (creep.memory.role) {
+                        case 'harvester': roleHarvester.run(creep); break;
+                        case 'upgrader': roleUpgrader.run(creep); break;
+                        case 'repairer': roleRepairer.run(creep); break;
+                    }
+    
+                    if (creep.memory.isDying && creep.carry.energy == 0) { creep.suicide() }
                 }
-
-                switch (creep.memory.role) {
-                    case 'harvester': roleHarvester.run(creep); break;
-                    case 'upgrader': roleUpgrader.run(creep); break;
-                    case 'repairer': roleRepairer.run(creep); break;
-                }
-
-                if (creep.memory.isDying && creep.carry.energy == 0) { creep.suicide() }
             }
         }
 
